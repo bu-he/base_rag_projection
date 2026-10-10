@@ -1,0 +1,3 @@
+rag_summarize_path: prompt/rag_summarize.txt
+rag_system_prompt_path : prompt/rag_system.txt
+agent_system_prompt_path : prompt/agent_system.txt

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 · RAG 知识库问答</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-body">
+  <div class="auth-card">
+    <h1>📚 RAG 知识库问答</h1>
+
+    <!-- 登录 / 注册 切换 -->
+    <div class="auth-tabs">
+      <button id="loginTabBtn" class="auth-tab active">登录</button>
+      <button id="registerTabBtn" class="auth-tab">注册</button>
+    </div>
+
+    <form id="authForm">
+      <label for="usernameInput">用户名</label>
+      <input id="usernameInput" type="text" autocomplete="username" required>
+
+      <label for="passwordInput">密码</label>
+      <input id="passwordInput" type="password" autocomplete="current-password" required>
+
+      <p id="authHint" class="auth-hint"></p>
+      <button id="submitBtn" type="submit" class="auth-submit">登录</button>
+    </form>
+  </div>
+
+  <script src="auth.js"></script>
+</body>
+</html>

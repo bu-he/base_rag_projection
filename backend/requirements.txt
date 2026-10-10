@@ -1,0 +1,40 @@
+# Web 框架
+fastapi==0.136.1
+uvicorn==0.47.0
+python-multipart==0.0.28        # 文件上传
+
+# 数据库
+SQLAlchemy==2.0.49
+
+# 配置校验
+pydantic==2.13.4
+pydantic-settings==2.14.1
+
+# 认证（密码哈希 + JWT）
+bcrypt==5.0.0
+python-jose==3.5.0
+
+# LangChain 全家桶
+langchain==1.4.3
+langchain-core==1.6.7
+langchain-classic==1.0.8
+langchain-community==0.4.2
+langchain-openai==1.2.2
+langchain-chroma==1.1.0
+langchain-text-splitters==1.1.2
+langgraph==1.2.11
+chromadb==1.5.9
+openai==2.36.0
+
+# 模型与检索
+dashscope==1.25.18              # DashScope rerank API
+jieba==0.42.1                   # BM25 中文分词
+PyYAML==6.0.3                   # prompt 路径等 yaml 配置
+
+# 测试
+pytest==9.1.1
+
+# 可选：本地重排模型（默认 reranker_type=api 不需要；切回 local 时再装，torch 约 2GB）
+# sentence-transformers==6.0.1
+# transformers==5.17.0
+# torch==2.14.0

@@ -1,0 +1,28 @@
+# Python 运行产物
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 虚拟环境
+.venv/
+venv/
+
+# 数据库文件（本地数据，由代码重建）
+*.db
+
+# Chroma 向量库（二进制，可由 data/ 语料重新入库生成）
+backend/chroma/
+
+# 日志
+backend/logs/
+
+# 环境变量与密钥
+.env
+
+# IDE
+.idea/
+.vscode/
+
+# 操作系统
+.DS_Store
+Thumbs.db

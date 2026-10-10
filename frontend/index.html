@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG 知识库问答</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- 左侧：会话列表 -->
+    <aside class="sidebar">
+      <button id="newSessionBtn" class="new-session-btn">＋ 新建会话</button>
+      <div id="sessionList" class="session-list"></div>
+    </aside>
+
+    <!-- 右侧：聊天主区 -->
+    <div class="main">
+    <header>
+      <h1>📚 RAG 知识库问答</h1>
+      <div class="toolbar">
+        <!-- 隐藏的原生文件选择框，由"上传文件"按钮触发 -->
+        <input type="file" id="fileInput" hidden accept=".txt,.md,.pdf">
+        <button id="uploadBtn" class="tool-btn">上传文件</button>
+        <button id="ingestBtn" class="tool-btn">扫描知识库</button>
+        <button id="clearBtn" class="tool-btn">清空对话</button>
+        <!-- 登录用户信息 + 登出（app.js 会往 currentUser 填用户名） -->
+        <div class="user-area">
+          <span id="currentUser"></span>
+          <button id="logoutBtn" class="tool-btn logout-btn">登出</button>
+        </div>
+      </div>
+      <!-- 模型就绪状态条：app.js 轮询 /health 更新（就绪后自动消失） -->
+      <div id="modelStatus" class="model-status loading">⏳ 正在连接后端...</div>
+    </header>
+
+    <!-- 聊天消息区 -->
+    <main id="chatArea"></main>
+
+    <!-- 输入区 -->
+    <footer>
+      <input id="queryInput" type="text" placeholder="输入你的问题，回车或点发送..." autocomplete="off">
+      <button id="sendBtn">发送</button>
+    </footer>
+    </div>
+  </div>
+
+  <!-- ?v=7 缓存版本号：改 app.js 后把数字加一，强制浏览器重新下载 -->
+  <script src="app.js?v=7"></script>
+</body>
+</html>

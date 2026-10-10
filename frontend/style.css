@@ -1,0 +1,431 @@
+/* ===== 全局 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: #f0f2f5;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== 页面骨架：左会话栏 + 右聊天区 ===== */
+.container {
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: row;
+  background: #fff;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 左侧会话栏 */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e5e5e5;
+  background: #fafbfc;
+}
+
+.new-session-btn {
+  margin: 12px 10px 8px;
+  padding: 9px 0;
+  font-size: 13px;
+  color: #fff;
+  background: #4a90d9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.new-session-btn:hover {
+  background: #3a7bc0;
+}
+
+.session-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 8px 8px;
+}
+
+.session-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 2px;
+  position: relative;   /* 给删除按钮做定位锚点 */
+}
+
+/* 删除按钮：右上角，悬停会话项时才出现 */
+.session-del {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  line-height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0;            /* 平时透明 */
+  transition: opacity 0.15s;
+}
+
+.session-item:hover .session-del {
+  opacity: 1;            /* 悬停时现身 */
+}
+
+.session-del:hover {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+.session-item:hover {
+  background: #e8f0fe;
+}
+
+.session-item.active {
+  background: #4a90d9;
+}
+
+.session-title {
+  font-size: 13px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-item.active .session-title {
+  color: #fff;
+}
+
+.session-time {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.session-item.active .session-time {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.session-empty {
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 24px;
+  line-height: 1.8;
+  padding: 0 8px;
+}
+
+/* 右侧聊天主区 */
+.main {
+  flex: 1;
+  min-width: 0;   /* 允许收缩，防止长内容把布局撑爆 */
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 14px 20px;
+  border-bottom: 1px solid #e5e5e5;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+header h1 {
+  font-size: 18px;
+  color: #333;
+}
+
+/* 模型就绪状态条：加载中灰色小字，就绪变绿并淡出 */
+.model-status {
+  width: 100%;
+  font-size: 12px;
+  color: #8a8a8a;
+  text-align: right;
+}
+.model-status.loading { color: #8a8a8a; }
+.model-status.ready {
+  color: #52c41a;
+  transition: opacity 0.6s ease;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.tool-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tool-btn:hover {
+  background: #e8f0fe;
+  border-color: #4a90d9;
+}
+
+/* ===== 聊天区 ===== */
+#chatArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.msg {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;       /* 保留模型输出里的换行 */
+  word-break: break-word;
+  position: relative;          /* 给消息删除按钮做定位锚点 */
+}
+
+/* 消息删除按钮：右上角，悬停消息时出现（和会话删除按钮同款交互） */
+.msg-del {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #999;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.msg:hover .msg-del {
+  opacity: 1;
+}
+
+.msg-del:hover {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+.msg.user {
+  align-self: flex-end;
+  background: #4a90d9;
+  color: #fff;
+  border-bottom-right-radius: 2px;
+}
+
+.msg.assistant {
+  align-self: flex-start;
+  background: #f2f3f5;
+  color: #333;
+  border-bottom-left-radius: 2px;
+}
+
+/* 系统提示（上传结果/错误等），居中灰字 */
+.msg.system {
+  align-self: center;
+  max-width: 90%;
+  background: #fdf6e3;
+  color: #8a6d3b;
+  font-size: 13px;
+  border-radius: 6px;
+  padding: 6px 14px;
+}
+
+.msg.error {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+/* "思考中"的动画 */
+.msg.loading .dots::after {
+  content: "";
+  animation: dots 1.2s steps(4) infinite;
+}
+
+@keyframes dots {
+  0%   { content: ""; }
+  25%  { content: "."; }
+  50%  { content: ".."; }
+  75%  { content: "..."; }
+}
+
+/* ===== 输入区 ===== */
+footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #e5e5e5;
+  background: #fff;
+}
+
+#queryInput {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  outline: none;
+}
+
+#queryInput:focus {
+  border-color: #4a90d9;
+}
+
+#sendBtn {
+  padding: 10px 22px;
+  font-size: 14px;
+  color: #fff;
+  background: #4a90d9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#sendBtn:hover {
+  background: #3a7bc0;
+}
+
+#sendBtn:disabled {
+  background: #a0c4eb;
+  cursor: not-allowed;
+}
+
+/* ===== 登录/注册页（login.html） ===== */
+/* 全局 body 已有水平居中，这里补垂直居中 */
+body.auth-body {
+  align-items: center;
+  background: linear-gradient(135deg, #e8f0fe 0%, #f0f2f5 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.auth-card h1 {
+  font-size: 20px;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* 登录/注册切换 tab */
+.auth-tabs {
+  display: flex;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 9px 0;
+  font-size: 14px;
+  border: none;
+  background: #fafafa;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.auth-tab.active {
+  background: #4a90d9;
+  color: #fff;
+}
+
+#authForm label {
+  display: block;
+  font-size: 13px;
+  color: #555;
+  margin: 12px 0 6px;
+}
+
+#authForm input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  outline: none;
+}
+
+#authForm input:focus {
+  border-color: #4a90d9;
+}
+
+/* 提示文字：预留高度防止报错时布局跳动 */
+.auth-hint {
+  min-height: 18px;
+  font-size: 13px;
+  color: #c0392b;
+  margin: 10px 0 6px;
+  text-align: center;
+}
+
+.auth-submit {
+  width: 100%;
+  padding: 11px 0;
+  font-size: 15px;
+  color: #fff;
+  background: #4a90d9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.auth-submit:hover {
+  background: #3a7bc0;
+}
+
+/* ===== 聊天页用户区（登录信息 + 登出按钮） ===== */
+.user-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 10px;
+  border-left: 1px solid #e5e5e5;
+}
+
+#currentUser {
+  font-size: 13px;
+  color: #666;
+}
+
+.logout-btn {
+  color: #c0392b;
+}
