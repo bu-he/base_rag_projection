@@ -16,10 +16,11 @@
 | 层 | 选型 |
 |---|---|
 | Web 框架 | FastAPI + Uvicorn |
-| RAG 框架 | LangChain（EnsembleRetriever / ContextualCompressionRetriever） |
+| Agent 框架 | LangChain create_agent（工具路由自动决策） |
+| RAG 检索 | LangChain（EnsembleRetriever / ContextualCompressionRetriever） |
 | 向量存储 | Chroma（本地嵌入式；同类：FAISS 本地型 / Milvus 服务型） |
-| Embedding | BGE 系列（HuggingFace 本地推理） |
-| 重排 | bge-reranker-v2-m3（cross-encoder） |
+| Embedding | Qwen text-embedding（DashScope API 型；同类：BGE 本地推理型） |
+| 重排 | DashScope rerank API（默认）/ bge-reranker-v2-m3 本地 cross-encoder（配置切换） |
 | LLM | Qwen（OpenAI 兼容接口） |
 | 数据库 | SQLite + SQLAlchemy ORM |
 | 认证 | JWT（OAuth2PasswordBearer + bcrypt） |
@@ -30,28 +31,34 @@
 
 ```mermaid
 flowchart LR
-    subgraph offline [离线入库链路]
-        A[data/ 知识文档] --> B[文档加载与递归分割]
-        B --> C[元数据标注 chunk_id / md5]
-        C --> D[BGE Embedding]
-        D --> E[(Chroma 向量库)]
+    subgraph offline ["离线入库链路"]
+        A["data/ 知识文档"] --> B["文档加载与递归分割"]
+        B --> C["元数据标注 chunk_id / md5"]
+        C --> D["Embedding（DashScope API）"]
+        D --> E[("Chroma 向量库")]
     end
 
-    subgraph online [在线问答链路]
-        F[用户提问] --> G[SSE 流式接口 /rag/ask_stream]
-        G --> H[JWT 鉴权与会话管理]
-        H --> I[混合检索：向量 + BM25 · RRF 加权]
-        E -. 语料 .-> I
-        I --> J[Cross-Encoder 重排 bge-reranker-v2-m3]
-        J --> K[Top-3 上下文组装 Prompt]
-        K --> L[Qwen 生成]
-        L --> M[SSE 逐 token 回传前端]
+    subgraph online ["在线问答链路（Agent）"]
+        F["用户提问"] --> G["SSE 流式接口 /agent/stream"]
+        G --> H["JWT 鉴权与会话管理"]
+        H --> I["Agent 决策（create_agent + 系统提示词）"]
+        I -->|"产品/知识问题"| J["工具：知识库检索"]
+        I -->|"算术计算"| K2["工具：calculator"]
+        I -->|"闲聊/问候"| L2["直接生成"]
+        J --> M["混合检索：向量 + BM25 加权"]
+        E -. "语料" .-> M
+        M --> N["重排（DashScope API / 本地 cross-encoder 可配置）"]
+        N --> O["Top-3 上下文组装"]
+        O --> P2["Qwen 生成"]
+        J --> P2
+        P2 --> Q2["SSE 逐 token 回传前端"]
+        L2 --> Q2
     end
 
-    subgraph quality [评测与测试]
-        N[30 条分层评测集] --> O[四路消融评测 evaluate.py]
-        O --> P[Hit@K / MRR 指标]
-        Q[pytest 23 条接口测试] --> R[(test_rag.db 独立测试库)]
+    subgraph quality ["评测与测试"]
+        N2["30 条分层评测集"] --> O2["四路消融评测 evaluate.py"]
+        O2 --> P3["Hit@K / MRR 指标"]
+        Q3["pytest 23 条接口测试"] --> R2[("test_rag.db 独立测试库")]
     end
 ```
 
@@ -60,11 +67,12 @@ flowchart LR
 ```text
 ragProject/
 ├── backend
-│   ├── api/router        # 路由层：auth / session / message / rag / document / health
+│   ├── agent             # Agent：create_agent + 工具（知识库检索 / 计算器）
+│   ├── factory           # 模型工厂：LLM / Embedding / 重排器统一出口
+│   ├── api/router        # 路由层：auth / session / message / agent / document / health
 │   ├── auth              # JWT 认证：签发、校验、依赖注入
 │   ├── conversation      # 会话与消息：models / repository / service / database
 │   ├── rag               # RAG 核心：检索、重排、入库、评测、文档加载
-│   ├── llm               # LLM 封装（OpenAI 兼容接口）
 │   ├── schemas           # Pydantic 请求/响应模型
 │   ├── core              # 全局异常体系（BusinessError / NotFoundError）
 │   ├── config            # 配置与日志（路径统一 __file__ 锚定）
@@ -118,7 +126,7 @@ ragProject/
 cd backend
 pip install -r requirements.txt
 
-# 2. 配置 LLM API Key（backend/config/rag.py）
+# 2. 配置密钥：复制 backend/.env.example 为 backend/.env，填入 DASHSCOPE_API_KEY 与 SECRET_KEY
 
 # 3. 启动服务（必须在 backend 目录下启动，它是模块运行根）
 uvicorn main:app --reload
