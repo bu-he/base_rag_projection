@@ -33,6 +33,7 @@ PyYAML==6.0.3                   # prompt 路径等 yaml 配置
 
 # 测试
 pytest==9.1.1
+httpx==0.28.1
 
 # 可选：本地重排模型（默认 reranker_type=api 不需要；切回 local 时再装，torch 约 2GB）
 # sentence-transformers==6.0.1
