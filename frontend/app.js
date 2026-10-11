@@ -301,7 +301,7 @@ async function uploadFile() {
     }
 
     const data = await res.json();
-    appendMessage("system", `✅ ${data.message}：${data.filename}，已入库，可以直接提问了`);
+    appendMessage("system", `✅ ${data.message}：${data.filename}`);
   } catch (err) {
     if (err.message !== "未登录" && err.message !== "登录已过期，请重新登录") await showError(err);
   } finally {

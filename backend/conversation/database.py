@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 database_path=get_file_path("rag.db").as_posix()
 test_database_path=get_file_path("test_rag.db").as_posix()
-print(database_path,test_database_path)
+
 # 数据库连接配置
 DATABASE_URL = f"sqlite:///{database_path}"
 TEST_DATABASE_URL = f"sqlite:///{test_database_path}"

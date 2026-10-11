@@ -49,6 +49,11 @@ class RetrieverService:
             
             logger.info(f"检索后整理资料耗时: {time.perf_counter() - start_time:.2f}秒")
             return content
+      # 重建bm25检索器
+      def rebuild_bm25(self):
+           self.bm25_retriever=BM25Retriever.from_documents(self.vectorstore.get_all_chunks(),k=self.setting.bm25_k,preprocess_func=self.chinese_preprocess)
+           self._ensemble_retriever.retrievers[1] = self.bm25_retriever
+           
 
 import threading
 

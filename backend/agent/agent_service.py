@@ -6,7 +6,7 @@ from utils.prompt_loader import load_prompt
 from sqlalchemy.orm import Session
 from conversation.service import ConversationService
 from config.logger import logger
-
+from langchain_core.messages import AIMessage,ToolMessage
 
 
 settings=Settings()
@@ -39,8 +39,18 @@ class AgentService:
      
      result=self.agent.invoke({"messages":messages})
      self.conversation_service.add_message(db,session_id=session_id,user_id=user_id,role="assistant",content=result["messages"][-1].content)
-     print(result)
-     print(result["messages"][-1].content)
+    
+    # 工具调用链路日志：决策（带参数）+ 结果
+     for msg in result["messages"]:
+         if isinstance(msg, AIMessage) and msg.tool_calls:
+             for tc in msg.tool_calls:
+                 logger.info(f"Agent 决定调用工具：{tc['name']}，参数：{tc['args']}")
+         elif isinstance(msg, ToolMessage):
+             preview = str(msg.content).replace("\n", " ")[:120]
+             logger.info(f"工具 {msg.name} 执行完成，返回 {len(str(msg.content))} 字符：{preview}...")
+
+
+
      return result["messages"][-1].content
   
     
@@ -60,14 +70,12 @@ class AgentService:
      completed=False
      try:
         for chunk ,metadata in self.agent.stream({"messages":messages},stream_mode="messages"):
-          
-             
-               
-           
-           if chunk.content and metadata.get("langgraph_node")=="model":
-               content += chunk.content
-               
-               yield chunk
+             if isinstance(chunk, ToolMessage):   # 工具结果，一次一条
+                 preview = str(chunk.content).replace("\n", " ")[:120]
+                 logger.info(f"工具 {chunk.name} 执行完成，返回 {len(str(chunk.content))} 字符：{preview}...")
+             elif chunk.content and metadata.get("langgraph_node") == "model":
+                  content += chunk.content
+                  yield chunk
         completed=True
      finally:
         if completed and content:
