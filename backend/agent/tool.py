@@ -8,7 +8,7 @@ from config.logger import logger
 def search_knowledge_base(query:str):
     from rag.retriever import get_retriever_service
     retriever_service=get_retriever_service()
-    if retriever_service._ensemble_retriever is None:
+    if retriever_service.compression_retriever is None:
         return "没有上传任何文件，请先上传文件"
     docs=retriever_service.compression_retriever.invoke(query)
     if not docs:

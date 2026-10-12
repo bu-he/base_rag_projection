@@ -65,11 +65,26 @@ class RetrieverService:
            if not chunk:
                   logger.info("向量库为空，跳过重建bm25检索器")
                   return
-           self.bm25_retriever=BM25Retriever.from_documents(chunk,k=self.setting.bm25_k,preprocess_func=self.chinese_preprocess)
+           self.bm25_retriever=BM25Retriever.from_documents(chunk,k=self.setting.bm25_k,preprocess_func=self.chinese_preprocess) 
+           
            if self._ensemble_retriever is not None:
                  
-                self._ensemble_retriever.retrievers[1] = self.bm25_retriever
+                self._ensemble_retriever.retrievers[1]=self.bm25_retriever
            
+           else:
+                
+                 self._ensemble_retriever = self.ensemble_retriever()
+                 self.compression_retriever = ContextualCompressionRetriever(
+                    base_retriever=self._ensemble_retriever,
+                    base_compressor=self.reranker,
+                 )
+                 self.bm25_retriever=self.bm25_retriever
+
+
+
+
+
+
 
 import threading
 
