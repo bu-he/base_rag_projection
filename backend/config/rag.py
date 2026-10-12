@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # 嵌入模型
     check_embedding_ctx_length:bool=False
-    embedding_batch_size:int=100
+    embedding_batch_size:int=20
     
     # 重排api模型配置
     rerank_model_name:str="qwen3.7-text-rerank"

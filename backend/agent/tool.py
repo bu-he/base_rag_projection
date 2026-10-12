@@ -4,15 +4,12 @@ from rag.retriever import RetrieverService
 from config.logger import logger
 
 
-
-# retriever_service=RetrieverService()
-
-
-
-@tool(description="检索扫地机器人产品知识库，返回带来源的资料。产品使用、故障、维护、价格规格等问题调用；打招呼、闲聊、无关常识不调用")
+@tool(description="检索扫地机器人产品知识库，返回带来源的资料。产品使用、故障、维护、价格规格等问题调用；打招呼、闲聊、无关常识不调用,如果返回没有上传任何文件，请先上传文件，那就提醒用户上传")
 def search_knowledge_base(query:str):
     from rag.retriever import get_retriever_service
     retriever_service=get_retriever_service()
+    if retriever_service._ensemble_retriever is None:
+        return "没有上传任何文件，请先上传文件"
     docs=retriever_service.compression_retriever.invoke(query)
     if not docs:
         logger.info(f"未检索到相关内容，查询：{query}")

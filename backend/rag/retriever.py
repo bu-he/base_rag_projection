@@ -17,30 +17,40 @@ class RetrieverService:
       def __init__(self):
             self.vectorstore=VectorStore()
             self.setting=Settings()
-            self.vector_retriever=self.vectorstore.get_retriever(self.setting.vector_k)
-            self.bm25_retriever=BM25Retriever.from_documents(self.vectorstore.get_all_chunks(),k=self.setting.bm25_k,preprocess_func=self.chinese_preprocess)
-            self._ensemble_retriever=EnsembleRetriever(
-                  retrievers=[self.vector_retriever,self.bm25_retriever],
-                  weights=self.setting.weights
-            )
+            self._ensemble_retriever=self.ensemble_retriever()
             self.reranker=create_reranker()
             
             # 组装完整的检索器
-            self.compression_retriever=ContextualCompressionRetriever(
+            self.compression_retriever=None if self._ensemble_retriever is None else ContextualCompressionRetriever(
      base_retriever=self._ensemble_retriever,
      base_compressor=self.reranker
 )
             
       @staticmethod 
-      def chinese_preprocess(text: str):
-           return list(jieba.cut_for_search(text)) 
+      def chinese_preprocess(text: str):  # 中文分词
+                  return list(jieba.cut_for_search(text)) 
       
    
-         
+      def ensemble_retriever(self):
+            chunk=self.vectorstore.get_all_chunks()
+            if not chunk:
+                  return None
+            vector_retriever=self.vectorstore.get_retriever(self.setting.vector_k)
+            bm25_retriever=BM25Retriever.from_documents(chunk,k=self.setting.bm25_k,preprocess_func=self.chinese_preprocess)
+            return EnsembleRetriever(
+                  retrievers=[vector_retriever,bm25_retriever],
+                  weights=self.setting.weights
+            )
+
+
+             
 
       # 组合重检索器
       def retrieve(self,query:str):
             start_time=time.perf_counter()
+            if self._ensemble_retriever is None or self.compression_retriever is None:
+                  return "没有上传任何文件，请先上传文件"
+
             result=self.compression_retriever.invoke(query)
             logger.info(f"检索耗时: {time.perf_counter() - start_time:.2f}秒")
             content=""
@@ -51,8 +61,14 @@ class RetrieverService:
             return content
       # 重建bm25检索器
       def rebuild_bm25(self):
-           self.bm25_retriever=BM25Retriever.from_documents(self.vectorstore.get_all_chunks(),k=self.setting.bm25_k,preprocess_func=self.chinese_preprocess)
-           self._ensemble_retriever.retrievers[1] = self.bm25_retriever
+           chunk=self.vectorstore.get_all_chunks()
+           if not chunk:
+                  logger.info("向量库为空，跳过重建bm25检索器")
+                  return
+           self.bm25_retriever=BM25Retriever.from_documents(chunk,k=self.setting.bm25_k,preprocess_func=self.chinese_preprocess)
+           if self._ensemble_retriever is not None:
+                 
+                self._ensemble_retriever.retrievers[1] = self.bm25_retriever
            
 
 import threading
@@ -71,31 +87,7 @@ def get_retriever_service():
 def is_ready() -> bool:
     return _retriever_service is not None
     
-if __name__ == "__main__":
-      rs=RetrieverService()
-      # content=retriever_service.retrieve("为什么机器人突然找不到家了？")
-      # print(content)
- 
-      # content=retriever_service.distance_score_filter("我现在处于什么阶段？")
-      # print(content)
 
-
-
-# 测试
-      # retriever_service.retrieve("我现在处于什么阶段？")
-
-
-# 测试召回率
-      # vector_result=rs.vector_retriever.invoke("床和沙发底下比较矮，机器人能钻进去吗")
-      # print(f"矢量检索结果:{vector_result}\n\n")
-      # bm25_result=rs.bm25_retriever.invoke("床和沙发底下比较矮，机器人能钻进去吗")
-      # print(f"BM25检索结果:{bm25_result}\n\n")
-      # ensemble_result=rs._ensemble_retriever.invoke("床和沙发底下比较矮，机器人能钻进去吗")
-      # print(f"混合检索结果:{ensemble_result}\n\n")
-      compression_result=rs.compression_retriever.invoke("床和沙发底下比较矮，机器人能钻进去吗")
-      print(f"重排检索结果:{compression_result}\n\n")
-      result=rs.retrieve("床和沙发底下比较矮，机器人能钻进去吗")
-      print(result)
 
 
 

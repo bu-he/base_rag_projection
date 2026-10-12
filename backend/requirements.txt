@@ -31,6 +31,9 @@ dashscope==1.25.18              # DashScope rerank API
 jieba==0.42.1                   # BM25 中文分词
 PyYAML==6.0.3                   # prompt 路径等 yaml 配置
 
+rank_bm25==0.2.2                # BM25Retriever 底层依赖
+pymupdf==1.25.3                 # PDF 文档加载
+
 # 测试
 pytest==9.1.1
 httpx==0.28.1
